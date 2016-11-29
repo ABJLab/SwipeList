@@ -14,6 +14,9 @@ public class Beer {
         this.name = name;
         this.desc = desc;
     }
+    public Beer(){
+
+    }
 
     public int getBeerIcon() {
         return beerIcon;

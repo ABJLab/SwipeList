@@ -1,6 +1,7 @@
 package com.abjlab.swipelist;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -10,6 +11,8 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -39,8 +42,9 @@ public class MainActivity extends AppCompatActivity {
 
     private ArrayList<Beer> beers;
     private RecyclerView beerList;
+    private FloatingActionButton fab;
     private Paint paint = new Paint();
-
+    private  BeerAdapter adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,9 +54,10 @@ public class MainActivity extends AppCompatActivity {
         loadList();
 
         beerList = (RecyclerView) findViewById(R.id.beerList);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
         beerList.setHasFixedSize(true);
 
-        final BeerAdapter adapter = new BeerAdapter(beers);
+        adapter = new BeerAdapter(beers);
         adapter.onClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -60,8 +65,7 @@ public class MainActivity extends AppCompatActivity {
                 Beer beer = beers.get(pos);
                 Toast.makeText(getApplicationContext(), beer.getName(), Toast.LENGTH_SHORT).show();
 
-                beers.remove(pos);
-                adapter.notifyItemRemoved(pos);
+                // adapter.notifyItemRemoved(pos);
             }
         });
         beerList.setAdapter(adapter);
@@ -69,6 +73,28 @@ public class MainActivity extends AppCompatActivity {
         beerList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         beerList.setItemAnimator(new DefaultItemAnimator());
         swipeHandler();
+
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(MainActivity.this, AddBeerActivity.class);
+                startActivityForResult(i, 1);
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == 1 && resultCode == RESULT_OK){
+            Beer beer = new Beer();
+            beer.setName(data.getStringExtra("nombre"));
+            beer.setDesc(data.getStringExtra("desc"));
+            beer.setBeerIcon(data.getIntExtra("icono", 0));
+            int size = beers.size();
+            beers.add(size, beer);
+            adapter.notifyItemInserted(size);
+        }
     }
 
     private void swipeHandler() {
@@ -90,7 +116,8 @@ public class MainActivity extends AppCompatActivity {
                     adapter.notifyItemRemoved(pos);
                     beers.add(pos, beer);
                     adapter.notifyItemInserted(pos);
-                    Toast.makeText(getApplicationContext(), "Almacenada en favoritos " + beer.getName() ,Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getApplicationContext(), "Almacenada en favoritos " + beer.getName() ,Toast.LENGTH_SHORT).show();
+                    Snackbar.make(beerList, "Almacenada en favoritos " + beer.getName(), Snackbar.LENGTH_SHORT).show();
                 } else {
                     beers.remove(pos);
                     adapter.notifyItemRemoved(pos);
